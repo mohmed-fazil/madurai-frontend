@@ -11,10 +11,10 @@ const Shop = () => {
   const [newcollection, setNewCollection] = useState([]);
 
   const fetchInfo = () => { 
-    fetch('https://madurai-special.onrender.com/popularinwomen') 
+    fetch('http://localhost/popularinwomen') 
             .then((res) => res.json()) 
             .then((data) => setPopular(data))
-    fetch('https://madurai-special.onrender.com/newcollections') 
+    fetch('http://localhost/newcollections') 
             .then((res) => res.json()) 
             .then((data) => setNewCollection(data))
     }

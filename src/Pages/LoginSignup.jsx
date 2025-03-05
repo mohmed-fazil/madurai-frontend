@@ -12,7 +12,7 @@ const LoginSignup = () => {
 
   const login = async () => {
     let dataObj;
-    await fetch('https://madurai-special.onrender.com/login', {
+    await fetch('http://localhost/login', {
       method: 'POST',
       headers: {
         Accept:'application/form-data',
@@ -35,7 +35,7 @@ const LoginSignup = () => {
 
   const signup = async () => {
     let dataObj;
-    await fetch('https://madurai-special.onrender.com/signup', {
+    await fetch('http://localhost/signup', {
       method: 'POST',
       headers: {
         Accept:'application/form-data',

@@ -9,7 +9,7 @@ const ShopCategory = (props) => {
   const [allproducts, setAllProducts] = useState([]);
 
   const fetchInfo = () => { 
-    fetch('https://madurai-special.onrender.com/allproducts') 
+    fetch('http://localhost/allproducts') 
             .then((res) => res.json()) 
             .then((data) => setAllProducts(data))
     }
