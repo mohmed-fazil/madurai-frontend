@@ -7,20 +7,13 @@ import { ShopContext } from '../../Context/ShopContext'
 import nav_dropdown from '../Assets/nav_dropdown.png'
 
 const Navbar = () => {
-    const [menu, setMenu] = useState("shop");
-    // Get user, logout function, and cart items count from context
+    let [menu, setMenu] = useState("shop");
     const { user, logout, getTotalCartItems } = useContext(ShopContext);
-
     const menuRef = useRef();
 
     const dropdown_toggle = (e) => {
         menuRef.current.classList.toggle('nav-menu-visible');
         e.target.classList.toggle('open');
-    }
-
-    const handleLogout = () => {
-        logout(); // Use the logout function from the context
-        window.location.replace("/");
     }
 
     return (
@@ -34,12 +27,12 @@ const Navbar = () => {
                 <li onClick={() => { setMenu("shop") }}><Link to='/' style={{ textDecoration: 'none' }}>Shop</Link>{menu === "shop" ? <hr /> : <></>}</li>
                 <li onClick={() => { setMenu("Offers") }}><Link to='/Offers' style={{ textDecoration: 'none' }}>Offers</Link>{menu === "Offers" ? <hr /> : <></>}</li>
                 <li onClick={() => { setMenu("Combos") }}><Link to='/Combos' style={{ textDecoration: 'none' }}>Combos</Link>{menu === "Combos" ? <hr /> : <></>}</li>
-                <li onClick={() => { setMenu("Menu") }}><Link to='/Menu' style={{ textDecoration: 'none' }}>Menu</Link>{menu === "Menu" ? <hr /> : <></>}</li>
+                {/* Only show "My Orders" if the user is logged in */}
+                {user && <li onClick={() => { setMenu("myorders") }}><Link to='/myorders' style={{ textDecoration: 'none' }}>My Orders</Link>{menu === "myorders" ? <hr /> : <></>}</li>}
             </ul>
             <div className="nav-login-cart">
-                {/* Check for user object from context instead of localStorage */}
                 {user
-                    ? <button onClick={handleLogout}>Logout</button>
+                    ? <button onClick={logout}>Logout</button>
                     : <Link to='/login' style={{ textDecoration: 'none' }}><button>Login</button></Link>}
                 <Link to="/cart"><img src={cart_icon} alt="cart" /></Link>
                 <div className="nav-cart-count">{getTotalCartItems()}</div>
