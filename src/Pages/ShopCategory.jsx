@@ -5,7 +5,6 @@ import Item from "../Components/Item/Item";
 import { ShopContext } from "../Context/ShopContext";
 
 const ShopCategory = (props) => {
-    // Get all products from the context instead of fetching locally
     const { all_products } = useContext(ShopContext);
 
     return (
@@ -17,17 +16,8 @@ const ShopCategory = (props) => {
             </div>
             <div className="shopcategory-products">
                 {all_products.map((item, i) => {
-                    // Note: The category filter from your original code is removed
-                    // because our backend items don't have a 'category' field.
-                    // We are displaying all items from the selected vendor.
-                    return <Item 
-                                key={i} 
-                                id={item._id} // Use _id from MongoDB
-                                name={item.name} 
-                                image={item.imageUrl} // Use imageUrl from backend
-                                new_price={item.price} // Use price from backend
-                                old_price={item.price} // old_price doesn't exist, so we use price
-                            />;
+                    // FIX: Pass the entire item object as a single 'data' prop
+                    return <Item key={i} data={item} />;
                 })}
             </div>
             <div className="shopcategory-loadmore">

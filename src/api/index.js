@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create an Axios instance configured to talk to our backend
 const API = axios.create({
     // IMPORTANT: Make sure this URL matches your running backend server
-    baseURL: 'http://localhost:4000/api' 
+    baseURL: 'https://madurai-backend.onrender.com/api' 
 });
 
 // --- User API Calls ---

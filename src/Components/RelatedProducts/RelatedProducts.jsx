@@ -1,20 +1,25 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import './RelatedProducts.css'
 import Item from '../Item/Item'
-import data_product from '../Assets/data'
+import { ShopContext } from '../../Context/ShopContext'
 
 const RelatedProducts = () => {
-  return (
-    <div className='relatedproducts'>
-      <h1>Related Products</h1>
-      <hr />
-      <div className="relatedproducts-item">
-        {data_product.map((item)=>{
-            return <Item id={item.id} name={item.name} image={item.image}  new_price={item.new_price} old_price={item.old_price}/>
-        })}
-      </div>
-    </div>
-  )
+    // FIX: Get product data from the context instead of a static file
+    const { all_products } = useContext(ShopContext);
+
+    return (
+        <div className='relatedproducts'>
+            <h1>Related Products</h1>
+            <hr />
+            <div className="relatedproducts-item">
+                {/* Slice the array to show a few related items */}
+                {all_products.slice(0, 4).map((item, i)=>{
+                    // FIX: Pass the entire item object as a single 'data' prop
+                    return <Item key={i} data={item}/>
+                })}
+            </div>
+        </div>
+    )
 }
 
 export default RelatedProducts

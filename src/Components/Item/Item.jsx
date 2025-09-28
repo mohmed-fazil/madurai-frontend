@@ -6,7 +6,12 @@ import { ShopContext } from '../../Context/ShopContext';
 const Item = (props) => {
     const { addToCart } = useContext(ShopContext);
 
-    // Use props that match our backend's data model
+    // This checks if props.data exists before trying to destructure it.
+    if (!props.data) {
+        return null; // Or return a loading spinner, or some placeholder
+    }
+
+    // Use property names that match our backend's data model
     const { _id, name, imageUrl, price } = props.data;
 
     return (

@@ -9,7 +9,8 @@ const Popular = (props) => {
       <hr />
       <div className="popular-item">
         {props.data.map((item,i)=>{
-            return <Item id={item.id} key={i} name={item.name} image={item.image}  new_price={item.new_price} old_price={item.old_price}/>
+            // FIX: Pass the entire item object as a single 'data' prop
+            return <Item key={i} data={item}/>
         })}
       </div>
     </div>
