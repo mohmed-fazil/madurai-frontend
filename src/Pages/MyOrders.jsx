@@ -5,12 +5,17 @@ import './CSS/MyOrders.css';
 const MyOrders = () => {
     const { orders, fetchOrders, user } = useContext(ShopContext);
 
-    // Fetch orders when the component mounts
+    // Fetch orders when the component mounts or when the user changes.
     useEffect(() => {
         if (user) {
             fetchOrders(user._id);
         }
-    }, [user]);
+    }, [user, fetchOrders]);
+
+    // Safety check to ensure 'orders' is not undefined before rendering.
+    if (!orders) {
+        return <p>Loading your orders...</p>;
+    }
 
     if (!user) {
         return <p>Please log in to see your orders.</p>;
@@ -54,3 +59,4 @@ const MyOrders = () => {
 };
 
 export default MyOrders;
+

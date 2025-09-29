@@ -1,5 +1,8 @@
-import React, { createContext, useState, useEffect } from "react";
-import * as api from '../api';
+import React, { createContext, useState, useEffect, useCallback } from "react";
+// FIX: Corrected the import path to point to the new api/index.js file
+import * as api from '../api'; 
+// FIX: Corrected the import path to point to the new hooks/useSocket.js file
+import { useSocket } from "../hooks/useSocket";
 
 export const ShopContext = createContext(null);
 
@@ -7,61 +10,79 @@ const ShopContextProvider = (props) => {
     const [all_products, setAllProducts] = useState([]);
     const [cartItems, setCartItems] = useState({});
     const [user, setUser] = useState(null);
+    const [orders, setOrders] = useState([]);
 
+    // This should be your specific Vendor ID from your database
     const VENDOR_ID = "68d576d68f832197263d351c"; 
 
+    // Use the socket hook to listen for real-time updates for the logged-in user
+    const { isOrderUpdated, resetOrderUpdateFlag } = useSocket(user?._id);
+
+    // This function fetches the order history for the current student
+    // FIX: Wrapped in useCallback to satisfy dependency warnings
+    const fetchOrders = useCallback(async (userId) => {
+        const idToFetch = userId || user?._id;
+        if (!idToFetch) return;
+        try {
+            const { data } = await api.getUserOrders(idToFetch);
+            setOrders(data);
+        } catch (error) {
+            console.error("Failed to fetch orders:", error);
+        }
+    }, [user]); // This function depends on the 'user' state
+
+    // This effect refetches orders when a real-time update is received
+    useEffect(() => {
+        if (isOrderUpdated && user) {
+            fetchOrders(user._id);
+            resetOrderUpdateFlag();
+        }
+    }, [isOrderUpdated, user, resetOrderUpdateFlag, fetchOrders]); // FIX: Added fetchOrders to dependency array
+
+    // This function fetches the vendor's product list
+    const fetchProducts = useCallback(async () => {
+        if (!VENDOR_ID.startsWith("PASTE")) {
+            try {
+                const { data } = await api.getVendorItems(VENDOR_ID);
+                setAllProducts(data);
+                // Initialize an empty cart based on the fetched products
+                let cart = {};
+                for (let i = 0; i < data.length; i++) {
+                    cart[data[i]._id] = 0;
+                }
+                setCartItems(cart);
+            } catch (error) {
+                console.error("Failed to fetch products:", error);
+            }
+        }
+    }, []); // This function has no dependencies
+
+    // This effect runs on initial load to fetch products and check for a logged-in user
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const userData = JSON.parse(storedUser);
+            setUser(userData);
+            fetchOrders(userData._id);
         }
-
-        const fetchProducts = async () => {
-            if (!VENDOR_ID.startsWith("PASTE")) {
-                try {
-                    const { data } = await api.getVendorItems(VENDOR_ID);
-                    setAllProducts(data);
-                    let cart = {};
-                    for (let i = 0; i < data.length; i++) {
-                        cart[data[i]._id] = 0;
-                    }
-                    setCartItems(cart);
-                } catch (error) {
-                    console.error("Failed to fetch products:", error);
-                }
-            }
-        };
         fetchProducts();
-    }, []);
+    }, [fetchProducts, fetchOrders]); // FIX: Added dependencies to array
 
     const login = async (userData) => {
         try {
             const { data } = await api.login(userData);
             localStorage.setItem('user', JSON.stringify(data));
             setUser(data);
+            fetchOrders(data._id); // Fetch orders after login
             return { success: true };
         } catch (error) {
-            // FIX: Improved error handling
-            if (error.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                console.error("Login failed:", error.response.data.message);
-                return { success: false, error: error.response.data.message };
-            } else if (error.request) {
-                // The request was made but no response was received
-                console.error("Login failed: No response from server.", error.request);
-                return { success: false, error: "Could not connect to the server. Please check your connection." };
-            } else {
-                // Something happened in setting up the request that triggered an Error
-                console.error('Error', error.message);
-                return { success: false, error: "An unexpected error occurred." };
-            }
+            const errorMessage = error.response?.data?.message || "Login failed.";
+            return { success: false, error: errorMessage };
         }
     };
 
     const register = async (userData) => {
         try {
-            // Note: Our backend expects 'username' and 'password'
             const { data } = await api.register({
                 username: userData.username, 
                 password: userData.password, 
@@ -71,40 +92,32 @@ const ShopContextProvider = (props) => {
             setUser(data);
             return { success: true };
         } catch (error) {
-            // FIX: Improved error handling
-            if (error.response) {
-                console.error("Registration failed:", error.response.data.message);
-                return { success: false, error: error.response.data.message };
-            } else if (error.request) {
-                console.error("Registration failed: No response from server.", error.request);
-                return { success: false, error: "Could not connect to the server. Please check your connection." };
-            } else {
-                console.error('Error', error.message);
-                return { success: false, error: "An unexpected error occurred." };
-            }
+            const errorMessage = error.response?.data?.message || "Registration failed.";
+            return { success: false, error: errorMessage };
         }
     };
     
     const logout = () => {
         localStorage.removeItem('user');
         setUser(null);
+        setOrders([]); // Clear orders on logout
     };
 
     const addToCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
+        setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
     };
 
     const removeFromCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
+        setCartItems((prev) => ({ ...prev, [itemId]: Math.max(0, (prev[itemId] || 0) - 1) }));
     };
 
     const getTotalCartAmount = () => {
         let totalAmount = 0;
-        for (const item in cartItems) {
-            if (cartItems[item] > 0) {
-                let itemInfo = all_products.find((product) => product._id === item);
+        for (const itemId in cartItems) {
+            if (cartItems[itemId] > 0) {
+                let itemInfo = all_products.find((product) => product._id === itemId);
                 if (itemInfo) {
-                    totalAmount += itemInfo.price * cartItems[item];
+                    totalAmount += itemInfo.price * cartItems[itemId];
                 }
             }
         }
@@ -113,9 +126,9 @@ const ShopContextProvider = (props) => {
 
     const getTotalCartItems = () => {
         let totalItem = 0;
-        for (const item in cartItems) {
-            if (cartItems[item] > 0) {
-                totalItem += cartItems[item];
+        for (const itemId in cartItems) {
+            if (cartItems[itemId] > 0) {
+                totalItem += cartItems[itemId];
             }
         }
         return totalItem;
@@ -134,11 +147,10 @@ const ShopContextProvider = (props) => {
         try {
             const { data: razorpayOrder } = await api.createRazorpayOrder({ amount: totalAmount });
             const options = {
-                key: "rzp_test_RJu3RR7MLc3G12",
+                key: "YOUR_RAZORPAY_KEY_ID_HERE", // IMPORTANT: Replace with your actual key
                 amount: razorpayOrder.amount,
                 currency: "INR",
                 name: "Campus Food Express",
-                description: "Payment for your food order",
                 order_id: razorpayOrder.id,
                 handler: async function (response) {
                     const orderItems = all_products
@@ -153,7 +165,9 @@ const ShopContextProvider = (props) => {
                     };
                     await api.placeOrder(orderPayload);
                     alert('Order placed successfully!');
+                    // Reset the cart
                     setCartItems(Object.keys(cartItems).reduce((acc, key) => ({ ...acc, [key]: 0 }), {}));
+                    fetchOrders(user._id); // Refresh the order list
                 },
                 prefill: { name: user.username },
             };
@@ -168,7 +182,7 @@ const ShopContextProvider = (props) => {
     const contextValue = {
         user,
         login,
-        register, // FIX: Ensure register is exported here
+        register,
         logout,
         all_products,
         cartItems,
@@ -177,6 +191,8 @@ const ShopContextProvider = (props) => {
         getTotalCartAmount,
         getTotalCartItems,
         handleCheckout,
+        orders,
+        fetchOrders,
     };
 
     return (

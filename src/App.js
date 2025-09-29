@@ -6,21 +6,20 @@ import Product from "./Pages/Product";
 import Footer from "./Components/Footer/Footer";
 import ShopCategory from "./Pages/ShopCategory";
 import women_banner from "./Components/Assets/banner.png";
-import men_banner from "./Components/Assets/banner.png";
-import kid_banner from "./Components/Assets/banner.png";
+// import kid_banner from "./Components/Assets/banner_kids.png";
 import LoginSignup from "./Pages/LoginSignup";
+import MyOrders from "./Pages/MyOrders";
 
 function App() {
-
   return (
     <div>
       <Router>
         <Navbar />
         <Routes>
           <Route path="/" element={<Shop gender="all" />} />
-          <Route path="/Offers" element={<ShopCategory banner={men_banner} category="Offers" />} />
+          {/* The route for "/Offers" has been removed */}
           <Route path="/Combos" element={<ShopCategory banner={women_banner} category="Combos" />} />
-          <Route path="/Menu" element={<ShopCategory banner={kid_banner} category="Menu" />} />
+          <Route path="/myorders" element={<MyOrders />} />
           <Route path='/product' element={<Product />}>
             <Route path=':productId' element={<Product />} />
           </Route>
@@ -34,3 +33,4 @@ function App() {
 }
 
 export default App;
+
