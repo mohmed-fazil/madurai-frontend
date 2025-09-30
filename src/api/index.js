@@ -9,10 +9,10 @@ export const login = (formData) => API.post('/users/login', formData);
 export const register = (formData) => API.post('/users/register', formData);
 
 // --- Item API Calls ---
-export const getVendorItems = (vendorId) => API.get(`api/items/vendor/${vendorId}`);
+export const getVendorItems = (vendorId) => API.get(`/items/vendor/${vendorId}`);
 
 // --- Order API Calls ---
 export const createRazorpayOrder = (orderData) => API.post('/orders/create-razorpay-order', orderData);
 export const placeOrder = (orderData) => API.post('/orders/place-order', orderData);
-export const getUserOrders = (userId) => API.get(`api/orders/user/${userId}`);
+export const getUserOrders = (userId) => API.get(`/orders/user/${userId}`);
 
