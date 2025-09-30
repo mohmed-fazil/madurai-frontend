@@ -9,15 +9,19 @@ const ShopCategory = (props) => {
 
     return (
         <div className="shopcategory">
-            <img src={props.banner} className="shopcategory-banner" alt="" />
+            <img src={props.banner} className="shopcategory-banner" alt="Category Banner" />
             <div className="shopcategory-indexSort">
-                <p><span>Showing all available items</span></p>
+                <p><span>Showing all {props.category} items</span></p>
                 <div className="shopcategory-sort">Sort by <img src={dropdown_icon} alt="" /></div>
             </div>
             <div className="shopcategory-products">
                 {all_products.map((item, i) => {
-                    // FIX: Pass the entire item object as a single 'data' prop
-                    return <Item key={i} data={item} />;
+                    // This 'if' statement is the key change. It filters the products.
+                    if (props.category === item.category) {
+                        return <Item key={i} data={item} />;
+                    } else {
+                        return null;
+                    }
                 })}
             </div>
             <div className="shopcategory-loadmore">

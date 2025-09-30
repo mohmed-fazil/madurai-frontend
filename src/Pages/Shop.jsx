@@ -1,22 +1,36 @@
 import React, { useContext } from 'react';
 import Hero from '../Components/Hero/Hero';
-import Popular from '../Components/Popular/Popular';
 import Offers from '../Components/Offers/Offers';
-import NewCollections from '../Components/NewCollections/NewCollections';
 import NewsLetter from '../Components/NewsLetter/NewsLetter';
 import { ShopContext } from '../Context/ShopContext';
+import Item from '../Components/Item/Item';
+
+// Reusing styles from ShopCategory for a consistent look and feel
+import './CSS/ShopCategory.css'; 
 
 const Shop = () => {
     const { all_products } = useContext(ShopContext);
 
     return (
-        <div>
+        <div className="shop-page">
             <Hero />
-            {/* FIX: Use the Popular component and pass the sliced data to it */}
-            <Popular data={all_products.slice(0, 4)} />
+            {/* Using the same layout as ShopCategory to display menu items */}
+            <div className="shopcategory">
+                <div className="shopcategory-indexSort">
+                    <p><span>Showing all Menu items</span></p>
+                </div>
+                <div className="shopcategory-products">
+                    {all_products.map((item, i) => {
+                        // This 'if' statement filters to show only 'Menu' items
+                        if (item.category === 'Menu') {
+                            return <Item key={i} data={item} />;
+                        } else {
+                            return null;
+                        }
+                    })}
+                </div>
+            </div>
             <Offers />
-            {/* FIX: Use the NewCollections component and pass the sliced data to it */}
-            <NewCollections data={all_products.slice(4, 12)} />
             <NewsLetter />
         </div>
     );
